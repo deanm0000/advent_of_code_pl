@@ -83,7 +83,6 @@ wins = (
 
 card_range = wins["Card_num"].unique()
 for card in card_range:
-    print(f"{datetime.utcnow()}: {card}")
     # Add copies of cards
     cur_card_wins = wins.filter(pl.col("Card_num") == card)["wins"][0]
     if cur_card_wins == 0:
@@ -100,5 +99,4 @@ for card in card_range:
             ],
         ]
     )
-
 part2_ans = wins.shape[0]
