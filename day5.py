@@ -122,9 +122,12 @@ seeds2 = (
     .with_columns(pl.all().cast(pl.Int64))
     .select("range", "seed")
 )
+### I can not figure out how to get the joins to work to do this with ranges at the start.
+## Brute force, guess and check seeds
 
 
 def all_map(df, _print=False, _return_df=False):
+    """Function to return all of the mappings given an input seed df"""
     df = (
         df.pipe(next_map)
         .pipe(next_map)
@@ -145,11 +148,14 @@ def all_map(df, _print=False, _return_df=False):
 
 
 def min_func(x):
+    """wrapper for all_map to only take a single input which is expected to be between 0 and 1
+    and is multiplied by range and added to the existings seed"""
     return seeds2.with_columns(
         seed=(pl.col("seed") + pl.lit(x) * pl.col("range")).cast(pl.Int64)
     ).pipe(all_map)
 
 
+# Run min_func with 0.001 increments for the input ranges
 res = {}
 for x in range(1000):
     res[str(x / 1000)] = min_func(x / 1000)
@@ -165,6 +171,10 @@ starting_seed = all_map(
     _return_df=True,
 )["seed"][0]
 
+
+# The previous result should be (knock on wood) close but with
+# such big numbers it could easily be smaller still. Now instead of multiplying, just subtract
+# (arbitrarily chosen) 10000 at a time until the location gets bigger than previous best location.
 x = 1
 while True:
     ret = all_map(
@@ -200,3 +210,8 @@ while True:
 # fertilizer = 934_422_079
 # soil = 3_969_171_811
 # seed = 3_969_171_811
+
+
+## I only know this worked b/c the site said it was the right answer,
+# otherwise I could have been in a local min without knowing it. Next stop if this didn't work
+# would have been to rerun the min_func loop with smaller granularity.
